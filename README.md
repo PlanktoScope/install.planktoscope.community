@@ -1,6 +1,6 @@
 # install.planktoscope.community
 
-Installation script to bootstrap installation of the PlanktoScope software
+Install script to bootstrap installation of the PlanktoScope software distro
 
 ## Usage
 
