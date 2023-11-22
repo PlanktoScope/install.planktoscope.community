@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 # Note: This is an installation script to bootstrap installation of the
-# PlanktoScope software on a Raspberry Pi. This is used to create the
-# standard SD card images for the PlanktoScope project, and to create
-# non-standard installations of the PlanktoScope software. Refer to
+# PlanktoScope software distro on a Raspberry Pi. This is used to create
+# the standard SD card images for the PlanktoScope project, and to create
+# non-standard installations of the PlanktoScope software distro. Refer to
 # https://docs-edge.planktoscope.community/setup/software/nonstandard-install/
 # for more information.
 #
@@ -206,7 +206,7 @@ fi
 
 usage() {
   printf "%s\n" \
-    "install.sh [options]" \
+    "distro.sh [options]" \
     "Download and install the specified version of the PlanktoScope software distro."
 
   printf "\n%s\n" "Options:"
@@ -216,19 +216,19 @@ usage() {
     "[default: \"${VERSION_TYPE}\"]" \
     \
     "-v, --version" \
-    "Set the version of the PlanktoScope software to install" \
+    "Set the version of the PlanktoScope distro to install" \
     "[default: \"${VERSION}\"]" \
     \
     "-H, --hardware" \
-    "Set the hardware configuration for the PlanktoScope software" \
+    "Set the hardware configuration for the PlanktoScope distro" \
     "[default: \"${HARDWARE}\"]" \
     \
     "-B, --base-url" \
-    "Set the base URL used for downloading the PlanktoScope software setup scripts" \
+    "Set the base URL used for downloading the PlanktoScope distro setup scripts" \
     "[default: \"${BASE_URL}\"]" \
     \
     "-H, --home-path" \
-    "Set the path which various components of the PlanktoScope software will be installed to" \
+    "Set the path which various components of the PlanktoScope distro will be installed to" \
     "[default: \"${HOME_PATH}\"]" \
     \
     "-f, -y, --force, --yes" \
@@ -245,17 +245,17 @@ usage() {
 
   printf "\n%s\n" "Examples:"
   printf "  %s\n    %s\n" \
-    "install.sh -H pscopehat" \
+    "distro.sh -H pscopehat" \
     "Install the latest stable release for a PlanktoScope with the custom PlanktoScope HAT" \
     \
-    "install.sh -v beta -H adafruithat" \
+    "distro.sh -v beta -H adafruithat" \
     "Install the latest beta prerelease or stable release for a PlanktoScope with the Adafruit HAT" \
-    "install.sh -v master -H pscopehat" \
+    "distro.sh -v master -H pscopehat" \
     "Install the latest development version for a Planktoscope with the custom PlanktoScope HAT" \
-    "install.sh -t version-tag -v v2023.9.0-beta.1 -H adafruithat" \
+    "distro.sh -t version-tag -v v2023.9.0-beta.1 -H adafruithat" \
     "Install the v2023.9.0-beta.1 prerelease for a PlanktoScope with the Adafruit HAT" \
-    "install.sh -t hash -v 30ee726 -H adafruithat" \
-    "Install the  for a PlanktoScope with the Adafruit HAT" \
+    "distro.sh -t hash -v 30ee726 -H adafruithat" \
+    "Install the 30ee726 commit for a PlanktoScope with the Adafruit HAT" \
     ""
 }
 
@@ -317,7 +317,7 @@ while [ "$#" -gt 0 ]; do
       VERBOSE="${1#*=}"
       shift 1
       ;;
-    -h | --help)https://github.com/PlanktoScope/PlanktoScope/archive/30ee726.tar.gz
+    -h | --help)
       usage
       exit
       ;;
@@ -361,9 +361,9 @@ case "$VERSION_TYPE" in
     ;;
 esac
 info "Download URL: ${UNDERLINE}${BLUE}${URL}${NO_COLOR}"
-confirm "Install the PlanktoScope software?"
+confirm "Install the PlanktoScope software distro?"
 if [ "${HOME_PATH}" != "/home/pi" ]; then
-  warn "Currently, the PlanktoScope software only works if it's installed to /home/pi, but you have asked to install it to ${HOME_PATH}"
+  warn "Currently, the PlanktoScope distro only works if it's installed to /home/pi, but you have asked to install it to ${HOME_PATH}"
   confirm "Are you sure you want to install to ${HOME_PATH}?"
 fi
 
