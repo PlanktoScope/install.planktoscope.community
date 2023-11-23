@@ -311,7 +311,7 @@ query_ref() {
 get_hash_of_commit() {
   jq="$1"
   commit="$2"
-  jq -er ".sha" <<< "${commit}" && return 0 || rc=$?
+  printf "%s" "${commit}" | jq -er ".sha" && return 0 || rc=$?
 
   error "Couldn't find Git commit hash for commit"
   printf "\n" >&2
@@ -321,7 +321,7 @@ get_hash_of_commit() {
 get_timestamp_of_commit() {
   jq="$1"
   commit="$2"
-  jq -er ".commit.committer.date" <<< "${commit}" && return 0 || rc=$?
+  printf "%s" "${commit}" | jq -er ".commit.committer.date" && return 0 || rc=$?
 
   error "Couldn't find Git commit timestamp for commit"
   printf "\n" >&2
@@ -332,7 +332,7 @@ resolve_tag_as_hash() {
   jq="$1"
   tags="$2"
   tag="$3"
-  jq -er ".[] | select(.name==\"${tag}\") | .commit.sha" <<< "${tags}" \
+  printf "%s" "${tags}" | jq -er ".[] | select(.name==\"${tag}\") | .commit.sha" \
     && return 0 || rc=$?
 
   error "Couldn't find Git tag \"${tag}\""
@@ -351,7 +351,7 @@ get_tag_of_hash() {
   jq="$1"
   tags="$2"
   commit_hash="$3"
-  jq -r ".[] | select(.commit.sha==\"${commit_hash}\") | .name" <<< "${tags}" \
+  printf "%s" "${tags}" | jq -r ".[] | select(.commit.sha==\"${commit_hash}\") | .name" \
     | sort_versions \
     | tail -n 1
 }
@@ -378,13 +378,13 @@ assemble_pseudoversion() {
   commit_hash="$3"
   if [ -z "${base_version}" -o "${base_version}" == "v0.0.0" ]; then
     base_version="v0.0.0-"
-  elif grep -q '-' <<< "${base_version}"; then
+  elif printf "%s" "${base_version}" | grep -q '-'; then
     base_version="${base_version}.0."
-  elif grep -q '^v\([[:digit:]]\+.\)\{2,2\}[[:digit:]]\+$' <<< "${base_version}"; then
+  elif printf "%s" "${base_version}" | grep -q '^v\([[:digit:]]\+.\)\{2,2\}[[:digit:]]\+$'; then
     # Note: this only matches base versions of form v1.2.3, but also allowing a tag prefix
     # (e.g. v1.2.3)
-    major_minor="$(sed 's~\(v\([[:digit:]]\+.\)\{2,2\}\).*~\1~' <<< "${base_version}")"
-    patch="$(sed 's~^v\([[:digit:]]\+.\)\{2,2\}~~' <<< "${base_version}")"
+    major_minor="$(printf "%s" "${base_version}" | sed 's~\(v\([[:digit:]]\+.\)\{2,2\}\).*~\1~')"
+    patch="$(printf "%s" "${base_version}" | sed 's~^v\([[:digit:]]\+.\)\{2,2\}~~')"
     patch="$((patch+1))"
     base_version="${major_minor}${patch}-0."
   else
@@ -392,8 +392,8 @@ assemble_pseudoversion() {
   fi
   printf "%s%s-%s" \
     "${base_version}" \
-    "$(sed "s~[-T:Z]~~g" <<< "${commit_timestamp}")" \
-    "$(cut -c 1-14 <<< "${commit_hash}")"
+    "${commit_timestamp}" \
+    "$(printf "%s" "${commit_hash}" | cut -c 1-14)"
 }
 
 
@@ -456,12 +456,14 @@ main() {
     commit="$(query_ref "${api_base_url}" "${VERSION_QUERY}")"
     commit_hash="$(get_hash_of_commit "${jq}" "${commit}")"
   fi
-  short_commit_hash="$(cut -c 1-7 <<< "${commit_hash}")"
+  short_commit_hash="$(printf "%s" "${commit_hash}" | cut -c 1-7)"
   commit_timestamp="$(get_timestamp_of_commit "${jq}" "${commit}")"
+  pretty_commit_time="$(printf "%s" "${commit_timestamp}" | sed -e "s~T~ ~" -e "s~Z~ UTC~")"
+  commit_timestamp="$(printf "%s" "${commit_timestamp}" | sed "s~[-T:Z]~~g")"
   tag="$(get_tag_of_hash "${jq}" "${tags}" "${commit_hash}")"
-  if grep -q "^${TAG_PREFIX}" <<< "${tag}"; then
+  if printf "%s" "${tag}" | grep -q "^${TAG_PREFIX}"; then
     version_type="version"
-    tag_version="$(sed "s~^${TAG_PREFIX}~~" <<< "${tag}")"
+    tag_version="$(printf "%s" "${tag}" | sed "s~^${TAG_PREFIX}~~")"
     version_string="${tag_version}"
   else
     version_type="pseudoversion"
@@ -471,7 +473,7 @@ main() {
 
   printf "  %s\n" "${UNDERLINE}Versioning${NO_COLOR}"
   info "${BOLD}Git Commit${NO_COLOR}:    ${short_commit_hash}"
-  info "${BOLD}Commit Time${NO_COLOR}:   $(sed -e "s~T~ ~" -e "s~Z~ UTC~" <<< ${commit_timestamp})"
+  info "${BOLD}Commit Time${NO_COLOR}:   ${pretty_commit_time}"
   info "${BOLD}Git Tag${NO_COLOR}:       $(with_empty_placeholder "${tag}")"
   info "${BOLD}Version Type${NO_COLOR}:  ${version_type}"
   info "${BOLD}Tag Version${NO_COLOR}:   ${tag_version}"
@@ -530,7 +532,7 @@ main() {
     "tag-prefix" "${TAG_PREFIX}" \
     "tag-version" "${tag_version}" \
     "commit" "${commit_hash}" \
-    "timestamp" "$(sed "s~[-T:Z]~~g" <<< "${commit_timestamp}")" \
+    "timestamp" "${commit_timestamp}" \
     > "${installer_version_lock_file}"
 
   if [ "${jq}" != "jq" ]; then
