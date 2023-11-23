@@ -473,10 +473,14 @@ main() {
 
   printf "  %s\n" "${UNDERLINE}Versioning${NO_COLOR}"
   info "${BOLD}Git Commit${NO_COLOR}:    ${short_commit_hash}"
-  info "${BOLD}Commit Time${NO_COLOR}:   ${pretty_commit_time}"
+  if [ -n "${VERBOSE-}" ]; then
+    info "${BOLD}Commit Time${NO_COLOR}:   ${pretty_commit_time}"
+  fi
   info "${BOLD}Git Tag${NO_COLOR}:       $(with_empty_placeholder "${tag}")"
-  info "${BOLD}Version Type${NO_COLOR}:  ${version_type}"
-  info "${BOLD}Tag Version${NO_COLOR}:   ${tag_version}"
+  if [ -n "${VERBOSE-}" ]; then
+    info "${BOLD}Version Type${NO_COLOR}:  ${version_type}"
+    info "${BOLD}Tag Version${NO_COLOR}:   ${tag_version}"
+  fi
   info "${BOLD}Version${NO_COLOR}:       ${version_string}"
   printf '\n'
 
