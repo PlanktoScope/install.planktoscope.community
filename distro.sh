@@ -376,7 +376,7 @@ assemble_pseudoversion() {
   base_version="$1"
   commit_timestamp="$2"
   commit_hash="$3"
-  if [ -z "${base_version}" -o "${base_version}" == "v0.0.0" ]; then
+  if [ -z "${base_version}" -o "${base_version}" = "v0.0.0" ]; then
     base_version="v0.0.0-"
   elif printf "%s" "${base_version}" | grep -q '-'; then
     base_version="${base_version}.0."
@@ -420,7 +420,7 @@ main() {
   info "${BOLD}Hardware${NO_COLOR}:      ${GREEN}${HARDWARE}${NO_COLOR}"
   if [ -n "${VERBOSE-}" ]; then
     VERBOSE=v
-    info "${BOLD}Verbose${NO_COLOR}:      yes"
+    info "${BOLD}Verbose${NO_COLOR}:       yes"
   else
     VERBOSE=
   fi
@@ -449,7 +449,7 @@ main() {
 
   api_base_url="https://api.github.com/repos/${REPO}"
   tags="$(get_tags "${api_base_url}")"
-  if [ "${QUERY_TYPE}" == "tag" ]; then
+  if [ "${QUERY_TYPE}" = "tag" ]; then
     commit_hash="$(resolve_tag_as_hash "${jq}" "${tags}" "${TAG_PREFIX}${VERSION_QUERY}")"
     commit="$(query_ref "${api_base_url}" "${commit_hash}")"
   else
