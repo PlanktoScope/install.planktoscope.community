@@ -542,7 +542,7 @@ main() {
   # Run the setup scripts
 
   info "Running the distro setup scripts, please wait..."
-  echo "${install_dir}/software/distro/setup/setup.sh" "${HARDWARE}"
+  "${install_dir}/software/distro/setup/setup.sh" "${HARDWARE}"
 }
 
 usage() {
