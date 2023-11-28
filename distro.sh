@@ -48,6 +48,10 @@ error() {
   printf '%s\n' "${RED}x $*${NO_COLOR}" >&2
 }
 
+completed() {
+  printf '%s\n' "${GREEN}✓${NO_COLOR} $*"
+}
+
 confirm() {
   if [ -z "${FORCE}" ]; then
     printf "%s " "${MAGENTA}?${NO_COLOR} $* ${BOLD}[y/N]${NO_COLOR}"
@@ -82,16 +86,6 @@ verify_shell_is_posix_or_exit() {
     exit 1
   else
     true  # No-op: no issues detected
-  fi
-}
-
-get_tmpfile() {
-  suffix="$1"
-  if has mktemp; then
-    printf "%s.%s" "$(mktemp)" "${suffix}"
-  else
-    # No really good options here--let's pick a default + hope
-    printf "/tmp/planktoscope-%s.%s" "$(date +%s)" "${suffix}"
   fi
 }
 
@@ -230,8 +224,10 @@ install_git() {
 main() {
   # Print configuration information
 
+  pretty_repo=$(printf "%s" "${REPO}" | sed "s~^.*://~~")
+
   printf "  %s\n" "${UNDERLINE}Configuration${NO_COLOR}"
-  info "${BOLD}Repo${NO_COLOR}:          ${GREEN}${REPO}${NO_COLOR}"
+  info "${BOLD}Repo${NO_COLOR}:          ${GREEN}${pretty_repo}${NO_COLOR}"
   info "${BOLD}Version query${NO_COLOR}: ${GREEN}${VERSION_QUERY}${NO_COLOR}"
   info "${BOLD}Query type${NO_COLOR}:    ${GREEN}${QUERY_TYPE}${NO_COLOR}"
   info "${BOLD}Hardware${NO_COLOR}:      ${GREEN}${HARDWARE}${NO_COLOR}"
@@ -255,7 +251,19 @@ main() {
   if [ -n "${VERBOSE-}" ]; then
     info "Downloading a minimal copy of the repository to resolve version information..."
   fi
-  clone "${REPO}" "${mirror_dir}" "--mirror"
+
+  normalized_repo="${REPO}"
+  if printf "%s" "${REPO}" | grep -q '@'; then
+    # Repo was specified with SCP-like syntax for SSH protocol
+    :
+  elif printf "%s" "${REPO}" | grep -q '://'; then
+    # Repo was specified with a protocol identifier
+    :
+  else
+    normalized_repo="https://${REPO}"
+  fi
+
+  clone "${normalized_repo}" "${mirror_dir}" "--mirror"
   commit_hash="$(resolve_commit "${mirror_dir}" "${QUERY_TYPE}" "${TAG_PREFIX}" "${VERSION_QUERY}")"
   short_commit_hash="$(printf "%s" "${commit_hash}" | cut -c 1-7)"
   tag="$(resolve_tag "${mirror_dir}" "${TAG_PREFIX}" "${commit_hash}")"
@@ -274,26 +282,19 @@ main() {
 
   # Download the appropriate copy of the repository
 
-  confirm "Install the PlanktoScope software distro?"
-  if [ "${HOME_DIR}" != "/home/pi" ]; then
-    warn "Currently, the PlanktoScope distro only works when it's installed to /home/pi, but you have asked to install it to ${HOME_DIR}"
-    confirm "Are you sure you want to continue?"
-  fi
-  check_home_dir "${HOME_DIR}"
-  install_dir="${HOME_DIR}/PlanktoScope"
-  if [ -d "${install_dir}" ]; then
-    warn "The ${install_dir} directory already exists, so it will be erased."
-    confirm "Are you sure you want to continue?"
-    rm -rf "${install_dir}"
-  fi
+  confirm "Download the PlanktoScope software distro setup scripts from ${normalized_repo}?"
+  setup_dir="$(get_tmpdir)"
 
-  info "Downloading the PlanktoScope distro, please wait..."
-  clone "${REPO}" "${install_dir}" "--no-checkout"
-  checkout "${install_dir}" "${commit_hash}"
+  info "Downloading the PlanktoScope distro setup scripts, please wait..."
+  clone "${normalized_repo}" "${setup_dir}" "--no-checkout"
+  checkout "${setup_dir}" "${commit_hash}"
+
+  printf "\n"
 
   # Record versioning information
 
   local_etc_dir="${HOME_DIR}/.local/etc/pkscope-distro"
+  info "Recording versioning information to ${local_etc_dir}..."
   if [ -d "${local_etc_dir}" ]; then
     warn "The ${local_etc_dir} directory already exists, so it will be erased."
     confirm "Are you sure you want to continue?"
@@ -305,7 +306,7 @@ main() {
   installer_config_file="${local_etc_dir}/installer-config.yml"
   printf "%s\n" "${installer_file_header}" > "${installer_config_file}"
   printf "%s: \"%s\"\n" \
-    "repo" "${REPO}" \
+    "repo" "${pretty_repo}" \
     "version-query" "${VERSION_QUERY}" \
     "query-type" "${QUERY_TYPE}" \
     "hardware" "${HARDWARE}" \
@@ -322,10 +323,18 @@ main() {
     "version" "${version_string}" \
     >> "${installer_versioning_file}"
 
+  printf "\n"
+
   # Run the setup scripts
 
-  info "Running the distro setup scripts, please wait..."
-  "${install_dir}/${SETUP_ENTRYPOINT}" "${HARDWARE}"
+  confirm "Run the distro setup script at ${setup_dir}/${SETUP_ENTRYPOINT}?"
+  info "Running the distro setup script, please wait..."
+  printf "\n"
+  "${setup_dir}/${SETUP_ENTRYPOINT}" "${HARDWARE}"
+  rm -rf "${setup_dir}"
+
+  printf "\n"
+  completed "Finished running the install.planktoscope.community/distro.sh install script!"
 }
 
 usage() {
@@ -336,7 +345,7 @@ usage() {
   printf "\n%s\n" "Options:"
   printf "  %s\n    %s\n    %s\n" \
     "-r, --repo" \
-    "Set the Git repo used for downloading the PlanktoScope distro setup scripts" \
+    "Set the Git repo used for downloading the PlanktoScope distro setup scripts; defaults to HTTPS protocol" \
     "[default: ${DEFAULT_REPO}]" \
     \
     "-v, --version-query" \
@@ -359,7 +368,7 @@ usage() {
     "Set the repository's setup script which will be invoked as part of the installation process" \
     "[default: ${DEFAULT_SETUP_ENTRYPOINT}]" \
     \
-    "-H, --home-dir" \
+    "--home-dir" \
     "Set the directory where various components of the PlanktoScope distro will be installed" \
     "[default: ${DEFAULT_HOME_DIR}]" \
     \
@@ -399,7 +408,7 @@ usage() {
 verify_shell_is_posix_or_exit
 
 # Set default values for the command-line arguments
-DEFAULT_REPO="https://github.com/PlanktoScope/PlanktoScope"
+DEFAULT_REPO="github.com/PlanktoScope/PlanktoScope"
 if [ -z "${REPO-}" ]; then
   REPO="${DEFAULT_REPO}"
 fi
@@ -485,11 +494,11 @@ while [ "$#" -gt 0 ]; do
       SETUP_ENTRYPOINT="${1#*=}"
       shift 1
       ;;
-    -H | --home-dir)
+    --home-dir)
       HOME_DIR="$2"
       shift 2
       ;;
-    -H=* | --home-dir=*)
+    --home-dir=*)
       HOME_DIR="${1#*=}"
       shift 1
       ;;
@@ -521,6 +530,7 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
+# Ensure a valid query type
 case "${QUERY_TYPE}" in
   branch | tag | hash)
     ;;
