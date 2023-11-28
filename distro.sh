@@ -98,35 +98,6 @@ get_tmpdir() {
   fi
 }
 
-# Test if a location is writeable by trying to write to it. Windows does not let
-# you test writeability other than by writing: https://stackoverflow.com/q/1999988
-test_writeable() {
-  path="${1:-}/test.txt"
-  if touch "${path}" 2>/dev/null; then
-    rm "${path}"
-    return 0
-  else
-    return 1
-  fi
-}
-
-check_home_dir() {
-  home_dir="${1%/}"
-
-  if [ ! -d "${home_dir}" ]; then
-    error "Installation location ${home_dir} does not appear to be a directory"
-    info "Make sure the location exists and is a directory, then try again."
-    usage
-    exit 1
-  fi
-
-  if ! test_writeable "${home_dir}"; then
-    error "You are not able to modify directory ${home_dir}!"
-    info "Switch to a user which can modify that directory, then try again."
-    exit 1
-  fi
-}
-
 
 
 # Utilities for interacting with Git repositories
@@ -235,7 +206,6 @@ main() {
     VERBOSE=v
     info "${BOLD}Tag prefix${NO_COLOR}:    $(with_empty_placeholder "${TAG_PREFIX}")"
     info "${BOLD}Entrypoint${NO_COLOR}:    $(with_empty_placeholder "${SETUP_ENTRYPOINT}")"
-    info "${BOLD}Home dir${NO_COLOR}:      $(with_empty_placeholder "${HOME_DIR}")"
     info "${BOLD}Verbose${NO_COLOR}:       yes"
   else
     VERBOSE=
@@ -293,7 +263,7 @@ main() {
 
   # Record versioning information
 
-  local_etc_dir="${HOME_DIR}/.local/etc/pkscope-distro"
+  local_etc_dir="${HOME}/.local/etc/pkscope-distro"
   info "Recording versioning information to ${local_etc_dir}..."
   if [ -d "${local_etc_dir}" ]; then
     warn "The ${local_etc_dir} directory already exists, so it will be erased."
@@ -312,7 +282,6 @@ main() {
     "hardware" "${HARDWARE}" \
     "tag-prefix" "${TAG_PREFIX}" \
     "setup-entrypoint" "${SETUP_ENTRYPOINT}" \
-    "home-dir" "${HOME_DIR}" \
     >> "${installer_config_file}"
 
   installer_versioning_file="${local_etc_dir}/installer-versioning.yml"
@@ -367,10 +336,6 @@ usage() {
     "--setup-entrypoint" \
     "Set the repository's setup script which will be invoked as part of the installation process" \
     "[default: ${DEFAULT_SETUP_ENTRYPOINT}]" \
-    \
-    "--home-dir" \
-    "Set the directory where various components of the PlanktoScope distro will be installed" \
-    "[default: ${DEFAULT_HOME_DIR}]" \
     \
     "-f, -y, --force, --yes" \
     "Skip the confirmation prompt during installation" \
@@ -432,10 +397,6 @@ DEFAULT_SETUP_ENTRYPOINT="software/distro/setup/setup.sh"
 if [ -z "${SETUP_ENTRYPOINT-}" ]; then
   SETUP_ENTRYPOINT="${DEFAULT_SETUP_ENTRYPOINT}"
 fi
-DEFAULT_HOME_DIR="/home/pi"
-if [ -z "${HOME_DIR-}" ]; then
-  HOME_DIR="${DEFAULT_HOME_DIR}"
-fi
 if [ -z "${FORCE-}" ]; then
   FORCE=""
 fi
@@ -492,14 +453,6 @@ while [ "$#" -gt 0 ]; do
       ;;
     --setup-entrypoint=*)
       SETUP_ENTRYPOINT="${1#*=}"
-      shift 1
-      ;;
-    --home-dir)
-      HOME_DIR="$2"
-      shift 2
-      ;;
-    --home-dir=*)
-      HOME_DIR="${1#*=}"
       shift 1
       ;;
     -f | -y | --force | --yes)
