@@ -180,11 +180,15 @@ install_git() {
   # could download a static binary which provides the Git commands we use, but there is no
   # obvious reputable source for this.
   if has apt-get; then # Debian/Ubuntu
-    sudo apt-get update
-    sudo apt-get install git
+    sudo apt-get -y update
+    sudo apt-get -y install git
+    printf "\n"
     return 0
-  elif has apk; then # Alpine Linux
+  fi
+  if has apk; then # Alpine Linux
     sudo apk add git
+    printf "\n"
+    return 0
   fi
   error "We don't know how to install Git on your system. Please install it and re-run this script."
 }
@@ -215,6 +219,7 @@ main() {
   # Resolve versioning information
 
   if ! has git; then
+    confirm "Your system doesn't have Git, but it is needed by the installer. Install Git?"
     install_git
   fi
   mirror_dir="$(get_tmpdir)"
