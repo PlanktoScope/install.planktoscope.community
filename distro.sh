@@ -292,6 +292,7 @@ main() {
   installer_versioning_file="${local_etc_dir}/installer-versioning.yml"
   printf "%s\n" "${installer_file_header}" > "${installer_versioning_file}"
   printf "%s: \"%s\"\n" \
+    "repo" "${pretty_repo}" \
     "commit" "${commit_hash}" \
     "tag" "${tag}" \
     "version" "${version_string}" \
