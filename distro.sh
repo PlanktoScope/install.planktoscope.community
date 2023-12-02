@@ -383,7 +383,7 @@ DEFAULT_REPO="github.com/PlanktoScope/PlanktoScope"
 if [ -z "${REPO-}" ]; then
   REPO="${DEFAULT_REPO}"
 fi
-DEFAULT_VERSION_QUERY="stable"
+DEFAULT_VERSION_QUERY="software/stable"
 if [ -z "${VERSION_QUERY-}" ]; then
   VERSION_QUERY="${DEFAULT_VERSION_QUERY}"
 fi

@@ -8,6 +8,10 @@ All dates in this file are given in the [UTC time zone](https://en.wikipedia.org
 
 ## Unreleased
 
+### Changed
+
+- Changed the default version query from `stable` to `software/stable`.
+
 ## v2023.9.0-beta.2 - 2023-12-02
 
 ### Added
