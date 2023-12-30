@@ -4,7 +4,7 @@ Install script to bootstrap installation of the PlanktoScope software distro
 
 ## Usage
 
-For usage instructions, please refer to the [non-standard installation guide](https://docs-edge.planktoscope.community/setup/software/nonstandard-install) for the PlanktoScope software.
+For usage instructions, please refer to the [non-standard installation guide](https://docs.planktoscope.community/setup/software/nonstandard-install) for the PlanktoScope software.
 
 ## Licensing
 
