@@ -8,6 +8,10 @@ All dates in this file are given in the [UTC time zone](https://en.wikipedia.org
 
 ## Unreleased
 
+### Changed
+
+- (Breaking change) Changed the default hardware platform from `pscopehat` to `planktoscopehat`.
+
 ## v2023.9.0 - 2023-12-30
 
 ### Changed

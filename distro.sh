@@ -357,17 +357,17 @@ usage() {
 
   printf "\n%s\n" "Examples:"
   printf "  %s\n    %s\n" \
-    "distro.sh -H pscopehat" \
-    "Install the latest stable release for a PlanktoScope with the custom PlanktoScope HAT" \
+    "distro.sh -H planktoscopehat" \
+    "Install the latest stable release for a PlanktoScope with the PlanktoScope HAT" \
     \
     "distro.sh ${GREEN}-v beta${NO_COLOR} -H adafruithat" \
     "Install the latest beta prerelease or stable release for a PlanktoScope with the Adafruit HAT" \
-    "distro.sh ${GREEN}-v master${NO_COLOR} -H pscopehat" \
-    "Install the latest development version for a Planktoscope with the custom PlanktoScope HAT" \
+    "distro.sh ${GREEN}-v master${NO_COLOR} -H planktoscopehat" \
+    "Install the latest development version for a Planktoscope with the PlanktoScope HAT" \
     "distro.sh ${GREEN}-t tag -v v2023.9.0-beta.1${NO_COLOR} -H adafruithat" \
     "Install the v2023.9.0-beta.1 prerelease for a PlanktoScope with the Adafruit HAT" \
-    "distro.sh ${GREEN}-t hash -v bca19bf${NO_COLOR} -H pscopehat" \
-    "Install the bca19bf commit for a PlanktoScope with the custom PlanktoScope HAT" \
+    "distro.sh ${GREEN}-t hash -v bca19bf${NO_COLOR} -H planktoscopehat" \
+    "Install the bca19bf commit for a PlanktoScope with the PlanktoScope HAT" \
     ""
 }
 
@@ -391,7 +391,7 @@ DEFAULT_QUERY_TYPE="branch"
 if [ -z "${QUERY_TYPE-}" ]; then
   QUERY_TYPE="${DEFAULT_QUERY_TYPE}"
 fi
-DEFAULT_HARDWARE="pscopehat"
+DEFAULT_HARDWARE="planktoscopehat"
 if [ -z "${HARDWARE-}" ]; then
   HARDWARE="${DEFAULT_HARDWARE}"
 fi
