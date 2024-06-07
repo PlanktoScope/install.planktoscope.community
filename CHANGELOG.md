@@ -8,9 +8,17 @@ All dates in this file are given in the [UTC time zone](https://en.wikipedia.org
 
 ## v2024.0.0 - 2024-03-26
 
+### Added
+
+- The files which record installer versioning information (previously recorded in files in `~/.local/etc/pkscope-distro`) are now also saved to `/usr/share/planktoscope/installer-config.yml` and `/usr/share/planktoscope/installer-versioning.yml`.
+
 ### Changed
 
 - (Breaking change) Changed the default hardware platform from `pscopehat` to `planktoscopehat`.
+
+### Deprecated
+
+- The installer versioning information files at `~/.local/etc/pkscope-distro/installer-config.yml` and `~/.local/etc/pkscope-distro/installer-versioning.yml` should not be used anymore. Instead, the corresponding files in `/usr/share/planktoscope` should be used.
 
 ## v2023.9.0 - 2023-12-30
 
