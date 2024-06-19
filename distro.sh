@@ -273,7 +273,9 @@ main() {
     if [ -d "${versioning_dir}" ]; then
       warn "The ${versioning_dir} directory already exists, so it will be erased."
       confirm "Are you sure you want to continue?"
-      rm -rf "${versioning_dir}"
+      if ! rm -rf "${versioning_dir}"; then
+        sudo rm -rf "${versioning_dir}"
+      fi
     fi
     if ! mkdir -p "${versioning_dir}"; then
       sudo mkdir -p "${versioning_dir}"
